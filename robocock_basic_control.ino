@@ -15,7 +15,14 @@
 #define CL_CONTROL 26 // clockwise push button
 #define ACL_CONTROL 27 // anti-clockwise push button
 
+// parameters
 #define SPEED 70 // 0 - 255
+#define RAMP_INT 1000  // ramp interval in ms
+
+enum Movement { Nm, Sm, Em, Wm, NWm, NEm, SWm, SEm, CLm, ACLm, Hm };
+
+int ramp_state = 0;   // 0 prepares for ramp up(H -> !H); 1 prepares for ramp down(!H -> H)
+Movement move_state = Hm; 
 
 int n_state = 0;
 int s_state = 0;
@@ -24,6 +31,7 @@ int w_state = 0;
 int cl_state = 0;
 int acl_state = 0;
 volatile int posi = 0; // specify posi as volatile: https://www.arduino.cc/reference/en/language/variables/variable-scope-qualifiers/volatile/
+
 
 void setup() {
   Serial.begin(9600);
@@ -56,27 +64,49 @@ void loop() {
   cl_state = digitalRead(CL_CONTROL);
   acl_state = digitalRead(ACL_CONTROL);
   if(n_state == 1 && s_state == 0 && e_state == 0 && w_state == 0 && cl_state == 0 && acl_state == 0) {  // N
+    move_state = Nm;
+    accel();
     Nmovement(SPEED);
   } else if(n_state == 0 && s_state == 1 && e_state == 0 && w_state == 0 && cl_state == 0 && acl_state == 0) { // S
+    move_state = Sm;
+    accel();
     Smovement(SPEED);
   } else if(n_state == 0 && s_state == 0 && e_state == 1 && w_state == 0 && cl_state == 0 && acl_state == 0) { // E
+    move_state = Em;
+    accel();
     Emovement(SPEED);
   } else if(n_state == 0 && s_state == 0 && e_state == 0 && w_state == 1 && cl_state == 0 && acl_state == 0) { // W
+    move_state = Wm;
+    accel();
     Wmovement(SPEED);
   } else if(n_state == 1 && s_state == 0 && e_state == 1 && w_state == 0 && cl_state == 0 && acl_state == 0) { // NE
+    move_state = NEm;
+    accel();
     NEmovement(SPEED);
   } else if(n_state == 1 && s_state == 0 && e_state == 0 && w_state == 1 && cl_state == 0 && acl_state == 0) { // NW
+    move_state = NWm;
+    accel();
     NWmovement(SPEED);
   } else if(n_state == 0 && s_state == 1 && e_state == 1 && w_state == 0 && cl_state == 0 && acl_state == 0) { // SE
+    move_state = SEm;
+    accel();
     SEmovement(SPEED);
   } else if(n_state == 0 && s_state == 1 && e_state == 0 && w_state == 1 && cl_state == 0 && acl_state == 0) {  // SW
+    move_state = SWm;
+    accel();
     SWmovement(SPEED);
   } else if(n_state == 0 && s_state == 0 && e_state == 0 && w_state == 0 && cl_state == 1 && acl_state == 0) { // CL
+    move_state = CLm;
+    accel();
     CLmovement(SPEED);
   } else if(n_state == 0 && s_state == 0 && e_state == 0 && w_state == 0 && cl_state == 0 && acl_state == 1) { // ACL
+    move_state = ACLm;
+    accel();
     ACLmovement(SPEED);
   } else {  // Halt
+    decel();
     Hmovement();
+    move_state = Hm;
   }
   
 }
@@ -183,6 +213,142 @@ void ACLmovement(int pwm) { // 1: LPWM; 2: LPWM; 3: LPWM; 4: LPWM
   setMotor(-1, pwm, RPWM_2, LPWM_2);   // 2
   setMotor(-1, pwm, RPWM_3, LPWM_3);   // 3
   setMotor(-1, pwm, RPWM_4, LPWM_4);   // 4
+}
+
+void accel() {
+  if(ramp_state == 0) {
+    switch(move_state) {
+      case Nm :
+        for(int i = 0; i < SPEED; i++) {
+          Nmovement(i);
+          delay(RAMP_INT/SPEED);
+        }
+        break;
+      case Sm :
+        for(int i = 0; i < SPEED; i++) {
+          Smovement(i);
+          delay(RAMP_INT/SPEED);
+        }
+        break;
+      case Em :
+        for(int i = 0; i < SPEED; i++) {
+          Emovement(i);
+          delay(RAMP_INT/SPEED);
+        }
+        break;
+      case Wm :
+        for(int i = 0; i < SPEED; i++) {
+          Wmovement(i);
+          delay(RAMP_INT/SPEED);
+        }
+        break;
+      case NWm :
+        for(int i = 0; i < SPEED; i++) {
+          NWmovement(i);
+          delay(RAMP_INT/SPEED);
+        }
+        break;
+      case NEm :
+        for(int i = 0; i < SPEED; i++) {
+          NEmovement(i);
+          delay(RAMP_INT/SPEED);
+        }
+        break;
+      case SWm :
+        for(int i = 0; i < SPEED; i++) {
+          SWmovement(i);
+          delay(RAMP_INT/SPEED);
+        }
+        break;
+      case SEm :
+        for(int i = 0; i < SPEED; i++) {
+          SEmovement(i);
+          delay(RAMP_INT/SPEED);
+        }
+        break;
+      case CLm :
+        for(int i = 0; i < SPEED; i++) {
+          CLmovement(i);
+          delay(RAMP_INT/SPEED);
+        }
+        break;
+      case ACLm :
+        for(int i = 0; i < SPEED; i++) {
+          ACLmovement(i);
+          delay(RAMP_INT/SPEED);
+        }
+        break;
+    }
+    ramp_state = 1;
+  }
+}
+
+void decel() {
+  if(ramp_state == 1) {
+    switch(move_state) {
+      case Nm :
+        for(int i = SPEED; i > 0; i--) {
+          Nmovement(i);
+          delay(RAMP_INT/SPEED);
+        }
+        break;
+      case Sm :
+        for(int i = SPEED; i > 0; i--) {
+          Smovement(i);
+          delay(RAMP_INT/SPEED);
+        }
+        break;
+      case Em :
+        for(int i = SPEED; i > 0; i--) {
+          Emovement(i);
+          delay(RAMP_INT/SPEED);
+        }
+        break;
+      case Wm :
+        for(int i = SPEED; i > 0; i--) {
+          Wmovement(i);
+          delay(RAMP_INT/SPEED);
+        }
+        break;
+      case NWm :
+        for(int i = SPEED; i > 0; i--) {
+          NWmovement(i);
+          delay(RAMP_INT/SPEED);
+        }
+        break;
+      case NEm :
+        for(int i = SPEED; i > 0; i--) {
+          NEmovement(i);
+          delay(RAMP_INT/SPEED);
+        }
+        break;
+      case SWm :
+        for(int i = SPEED; i > 0; i--) {
+          SWmovement(i);
+          delay(RAMP_INT/SPEED);
+        }
+        break;
+      case SEm :
+        for(int i = SPEED; i > 0; i--) {
+          SEmovement(i);
+          delay(RAMP_INT/SPEED);
+        }
+        break;
+      case CLm :
+        for(int i = SPEED; i > 0; i--) {
+          CLmovement(i);
+          delay(RAMP_INT/SPEED);
+        }
+        break;
+      case ACLm :
+        for(int i = SPEED; i > 0; i--) {
+          ACLmovement(i);
+          delay(RAMP_INT/SPEED);
+        }
+        break;
+    }
+    ramp_state = 0;
+  }
 }
 
 void readEncoder(){
