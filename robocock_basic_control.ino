@@ -12,8 +12,6 @@
 #define S_CONTROL 23 // reverse push button
 #define E_CONTROL 24 // left strafe push button
 #define W_CONTROL 25 // right strafe push button
-#define CL_CONTROL 26 // clockwise push button
-#define ACL_CONTROL 27 // anti-clockwise push button
 
 // parameters
 #define SPEED 70 // 0 - 255
@@ -28,8 +26,6 @@ int n_state = 0;
 int s_state = 0;
 int e_state = 0;
 int w_state = 0;
-int cl_state = 0;
-int acl_state = 0;
 volatile int posi = 0; // specify posi as volatile: https://www.arduino.cc/reference/en/language/variables/variable-scope-qualifiers/volatile/
 
 
@@ -42,8 +38,6 @@ void setup() {
   pinMode(S_CONTROL, INPUT);
   pinMode(E_CONTROL, INPUT);
   pinMode(W_CONTROL, INPUT);
-  pinMode(CL_CONTROL, INPUT);
-  pinMode(ACL_CONTROL, INPUT);
   
   
   pinMode(RPWM_1,OUTPUT);
@@ -61,45 +55,43 @@ void loop() {
   s_state = digitalRead(S_CONTROL);
   e_state = digitalRead(E_CONTROL);
   w_state = digitalRead(W_CONTROL);
-  cl_state = digitalRead(CL_CONTROL);
-  acl_state = digitalRead(ACL_CONTROL);
-  if(n_state == 1 && s_state == 0 && e_state == 0 && w_state == 0 && cl_state == 0 && acl_state == 0) {  // N
+  if(n_state == 1 && s_state == 0 && e_state == 0 && w_state == 0) {  // N
     move_state = Nm;
     accel();
     Nmovement(SPEED);
-  } else if(n_state == 0 && s_state == 1 && e_state == 0 && w_state == 0 && cl_state == 0 && acl_state == 0) { // S
+  } else if(n_state == 0 && s_state == 1 && e_state == 0 && w_state == 0) { // S
     move_state = Sm;
     accel();
     Smovement(SPEED);
-  } else if(n_state == 0 && s_state == 0 && e_state == 1 && w_state == 0 && cl_state == 0 && acl_state == 0) { // E
+  } else if(n_state == 0 && s_state == 0 && e_state == 1 && w_state == 0) { // E
     move_state = Em;
     accel();
     Emovement(SPEED);
-  } else if(n_state == 0 && s_state == 0 && e_state == 0 && w_state == 1 && cl_state == 0 && acl_state == 0) { // W
+  } else if(n_state == 0 && s_state == 0 && e_state == 0 && w_state == 1) { // W
     move_state = Wm;
     accel();
     Wmovement(SPEED);
-  } else if(n_state == 1 && s_state == 0 && e_state == 1 && w_state == 0 && cl_state == 0 && acl_state == 0) { // NE
+  } else if(n_state == 1 && s_state == 0 && e_state == 1 && w_state == 0) { // NE
     move_state = NEm;
     accel();
     NEmovement(SPEED);
-  } else if(n_state == 1 && s_state == 0 && e_state == 0 && w_state == 1 && cl_state == 0 && acl_state == 0) { // NW
+  } else if(n_state == 1 && s_state == 0 && e_state == 0 && w_state == 1) { // NW
     move_state = NWm;
     accel();
     NWmovement(SPEED);
-  } else if(n_state == 0 && s_state == 1 && e_state == 1 && w_state == 0 && cl_state == 0 && acl_state == 0) { // SE
+  } else if(n_state == 0 && s_state == 1 && e_state == 1 && w_state == 0) { // SE
     move_state = SEm;
     accel();
     SEmovement(SPEED);
-  } else if(n_state == 0 && s_state == 1 && e_state == 0 && w_state == 1 && cl_state == 0 && acl_state == 0) {  // SW
+  } else if(n_state == 0 && s_state == 1 && e_state == 0 && w_state == 1) {  // SW
     move_state = SWm;
     accel();
     SWmovement(SPEED);
-  } else if(n_state == 0 && s_state == 0 && e_state == 0 && w_state == 0 && cl_state == 1 && acl_state == 0) { // CL
+  } else if(n_state == 1 && s_state == 1 && e_state == 1 && w_state == 0) { // CL
     move_state = CLm;
     accel();
     CLmovement(SPEED);
-  } else if(n_state == 0 && s_state == 0 && e_state == 0 && w_state == 0 && cl_state == 0 && acl_state == 1) { // ACL
+  } else if(n_state == 1 && s_state == 1 && e_state == 0 && w_state == 1) { // ACL
     move_state = ACLm;
     accel();
     ACLmovement(SPEED);
