@@ -1,23 +1,32 @@
+// SECTION 1: Configuration
+
+// Encoder pins
 #define ENCA 52 // YELLOW
 #define ENCB 53 // WHITE
-#define RPWM_1 2  // front left wheel
-#define LPWM_1 3
+
+// Wheel control pins
+#define RPWM_1 2  // front left wheel (clockwise)
+#define LPWM_1 3  // front right wheel (anticlockwise)
 #define RPWM_2 4  // front right wheel
 #define LPWM_2 5
 #define RPWM_3 6  // rear left wheel
 #define LPWM_3 7
 #define RPWM_4 8  // rear right wheel
 #define LPWM_4 9
+
+// [DEVELOPMENT] Remote control pins
 #define N_CONTROL 22 // forward push button
 #define S_CONTROL 23 // reverse push button
 #define E_CONTROL 24 // left strafe push button
 #define W_CONTROL 25 // right strafe push button
 
-// parameters
+// [DEVELOPMENT] Movement parameters
 #define SPEED 70 // 0 - 255
 #define RAMP_INT 1000  // ramp interval in ms
 
-enum Movement { Nm, Sm, Em, Wm, NWm, NEm, SWm, SEm, CLm, ACLm, Hm };
+enum Movement { Nm, Sm, Em, Wm, NWm, NEm, SWm, SEm, CLm, ACLm, Hm }; // Hm = halt
+
+// SECTION 2: Global / runtime variables
 
 int ramp_state = 0;   // 0 prepares for ramp up(H -> !H); 1 prepares for ramp down(!H -> H)
 Movement move_state = Hm; 
@@ -30,16 +39,21 @@ volatile int posi = 0; // specify posi as volatile: https://www.arduino.cc/refer
 
 
 void setup() {
+  // Start serial communication
   Serial.begin(9600);
-  pinMode(ENCA,INPUT);
-  pinMode(ENCB,INPUT);
-  attachInterrupt(digitalPinToInterrupt(ENCA),readEncoder,RISING);
+
+  // Declare encoder pins as inputs
+  // pinMode(ENCA,INPUT);
+  // pinMode(ENCB,INPUT);
+  // attachInterrupt(digitalPinToInterrupt(ENCA),readEncoder,RISING);
+
+  // Declare remote control pins as inputs
   pinMode(N_CONTROL, INPUT);
   pinMode(S_CONTROL, INPUT);
   pinMode(E_CONTROL, INPUT);
   pinMode(W_CONTROL, INPUT);
   
-  
+  // Declare wheel control pins as outputs
   pinMode(RPWM_1,OUTPUT);
   pinMode(LPWM_1, OUTPUT);
   pinMode(RPWM_2,OUTPUT);
@@ -51,10 +65,13 @@ void setup() {
 }
 
 void loop() {
+  // Check state of remote control buttons
   n_state = digitalRead(N_CONTROL);
   s_state = digitalRead(S_CONTROL);
   e_state = digitalRead(E_CONTROL);
   w_state = digitalRead(W_CONTROL);
+
+  
   if(n_state == 1 && s_state == 0 && e_state == 0 && w_state == 0) {  // N
     move_state = Nm;
     accel();

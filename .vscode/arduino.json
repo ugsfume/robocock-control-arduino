@@ -1,0 +1,5 @@
+{
+    "sketch": "robocock_controller.ino",
+    "configuration": "cpu=atmega2560",
+    "board": "arduino:avr:mega"
+}
